@@ -1,6 +1,4 @@
-##Note5 XferMode
-
-
+﻿##Note5 XferMode  （见XferMode图解）
 
 
 从上面我们可以看到PorterDuff.Mode为枚举类,一共有16个枚举值:

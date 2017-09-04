@@ -1,0 +1,6 @@
+﻿### 需要了解的Android知识；
+
+
+1.Activity与Window的管理与底层逻辑；
+
+2.Activty和View的属性与主题框架；
