@@ -1,48 +1,33 @@
 ﻿一.java 常见类，String,List,Set，Thread等源码分析与记录；
 
 1.String 类；
-
 1)String 类为final,不可被继承；
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence{
 ...
 }
-
 2）
 /**
 The value isused for character storage.
 */
 private final char value[];
-
 String 其实是基于字符数组 char[] 实现的。这是一个字符数组，并且是 final 类型，用于存储字符串内容。从 fianl 关键字可以看出，String 的内容一旦被初始化后，其不能被修改的。
-
 3）
 /**
 Cache the hashcode for the string
 */
 private int hash;  //Default to 0；
-
 缓存字符串的 hash Code，其默认值为 0；
-
 4）
-
 /**
 use serialVersionUID from JDK 1.0.2 for interoperability
 */
-
 private static final long serialVersionUID = -6849794470754667710L;
-
-
 /**
 Class String is special cased with in the Serialization Stream Protocol.
 */
-
 privates tatic final ObjectStreamField[] serialPersistentFields =  new ObjectStreamField[0]
-
-
-
 因为 String 实现了 Serializable 接口，所以支持序列化和反序列化支持。Java 的序列化机制是通过在运行时判断类的 serialVersionUID 来验证版本一致性的。在进行反序列化时，JVM 会把传来的字节流中的 serialVersionUID 与本地相应实体（类）的
 serialVersionUID 进行比较，如果相同就认为是一致的，可以进行反序列化，否则就会出现序列化版本不一致的异常(InvalidCastException)。
-
 
 5）使用 StringBuffer 和 StringBuider 构造一个String，作为 String 的两个“兄弟”，StringBuffer 和 StringBuider 也可以被当做构造 String 的参数。关于效率问题，Java 的官方文档有提到说使用StringBuilder 的 toString 方法会更快一些，原因是StringBuffer 的 toString 方法是 synchronized 的，在牺牲了效率的情况下保证了线程安全。
 
@@ -53,14 +38,7 @@ String(char[] value, boolean share) {
  this.value = value;
 }
 从代码中我们可以看出，该方法和 String(char[] value) 有两点区别：
-第一个，该方法多了一个参数：boolean share，其实这个参数在方法体中根本没被使用。注释说目前不支持 false，只使用 true。那可以断定，加入这个 share 的只是为了区分于 String(char[] value) 方法，不加这个参数就没办法定义这个函数，只有参数是不能才能进行重载。第二个区别就是具体的方法实现不同。我们前面提到过，String(char[] value) 方法在创建 String 的时候会用到 Arrays 的 copyOf 方法将value中的内容逐一复制到 String当中，而这个 String(char[] value, boolean share) 方法则是直接将value的引用赋值给String的value。
-
-作者：石先
-链接：http://www.jianshu.com/p/799c4459b808
-來源：简书
-著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。那么也就是说，这个方法构造出来的 String 和参数传过来的 char[] value 共享同一个数组。为什么 Java 会提供这样一个方法呢？性能好。这个很简单，一个是直接给数组赋值（相当于直接将 String 的 value 的指针指向char[]数组），一个是逐一拷贝。当然是直接赋值快了。节约内存。该方法之所以设置为 protected，是因为一旦该方法设置为公有，在外面可以访问的话，如果构造方法没有对 arr 进行拷贝，那么其他人就可以在字符串外部修改该数组，由于它们引用的是同一个数组，因此对 arr 的修改就相当于修改了字符串，那就破坏了字符串的不可变性。安全的。对于调用他的方法来说，由于无论是原字符串还是新字符串，其 value 数组本身都是 String 对象的私有属性，从外部是无法访问的，因此对两个字符串来说都很安全。
-
-
+第一个，该方法多了一个参数：boolean share，其实这个参数在方法体中根本没被使用。注释说目前不支持 false，只使用 true。那可以断定，加入这个 share 的只是为了区分于 String(char[] value) 方法，不加这个参数就没办法定义这个函数，只有参数是不能才能进行重载。第二个区别就是具体的方法实现不同。我们前面提到过，String(char[] value) 方法在创建 String 的时候会用到 Arrays 的 copyOf 方法将value中的内容逐一复制到 String当中，而这个 String(char[] value, boolean share) 方法则是直接将value的引用赋值给String的value。那么也就是说，这个方法构造出来的 String 和参数传过来的 char[] value 共享同一个数组。为什么 Java 会提供这样一个方法呢？性能好。这个很简单，一个是直接给数组赋值（相当于直接将 String 的 value 的指针指向char[]数组），一个是逐一拷贝。当然是直接赋值快了。节约内存。该方法之所以设置为 protected，是因为一旦该方法设置为公有，在外面可以访问的话，如果构造方法没有对 arr 进行拷贝，那么其他人就可以在字符串外部修改该数组，由于它们引用的是同一个数组，因此对 arr 的修改就相当于修改了字符串，那就破坏了字符串的不可变性。安全的。对于调用他的方法来说，由于无论是原字符串还是新字符串，其 value 数组本身都是 String 对象的私有属性，从外部是无法访问的，因此对两个字符串来说都很安全。
 7）Java7加入的新特性；
 在 Java 7 之前有很多 String 里面的方法都使用上面说的那种“性能好的、节约内存的、安全”的构造函数。
 比如：substring replace concat valueOf等方法。但是在 Java 7 中，substring已经不再使用这种“优秀”的方法了；public String substring(int beginIndex, int endIndex){
@@ -90,39 +68,24 @@ aPart，其长度只有 20个 字符，但是它的内部数组却是从 aLongSt
 aLongString 本身可以被回收，但它的内部数组却不能释放。
 这就导致了内存泄漏。如果一个程序中这种情况经常发生有可能会导致严重的后果，如内存溢出，或性能下降。新的实现虽然损失了性能，而且浪费了一些存储空间，但却保证了字符串的内部数组可以和字符串对象一起被回收，从而防止发生内存泄漏，因此新的 substring 比原来的更健壮。
 
-
 8）equals方法：
-
 public boolean equals(Object anObject) {
-     
-if (this == anObject) {
-         
-return true;
+if (this == anObject) {      
+  return true;
      } 
-   
- if (anObject instanceof String) {
-      
- String anotherString = (String) anObject;
-      
- int n = value.length;
-       
+    if (anObject instanceof String) {
+       String anotherString = (String) anObject;
+       int n = value.length;
 if (n == anotherString.value.length) {
-           
-char v1[] = value;
-           
-char v2[] = anotherString.value;
-           
-int i = 0;
-          
+         char v1[] = value;
+char v2[] = anotherString.value;  
+int i = 0   
  while (n-- != 0) {
-             
 if (v1[i] != v2[i])
              
-return false;
-            
+return false;        
  i++;
-           }
-           
+           }    
 return true;
        }
    } 
@@ -132,8 +95,6 @@ return true;
 该方法首先判断this == anObject ？，也就是说判断要比较的对象和当前对象是不是同一个对象，如果是直接返回 true，如不是再继续比较，然后在判断
 anObject 是不是 String
 类型的，如果不是，直接返回 false，如果是再继续比较，到了能终于比较字符数组的时候，他还是先比较了两个数组的长度，不一样直接返回 false，一样再逐一比较值。 虽然代码写的内容比较多，但是可以很大程度上提高比较的效率。值得学习！！！
-
-
 9）public int hashCode(){
   int h = hash;
   if(h == 0 && value.length > 0){
@@ -145,15 +106,11 @@ anObject 是不是 String
   }
   return h;
 }
-
-
-
 hashCode 的实现其实就是使用数学公式：s[0]31^(n-1) + s[1]31^(n-2) + ... + s[n-1]。所谓“冲突”，就是在存储数据计算hash地址的时候，我们希望尽量减少有同样的hash地址。如果使用相同 hash 地址的数据过多，那么这些数据所组成的 hash 链就更长，从而降低了查询效率。
 所以在选择系数的时候要选择尽量长的系数并且让乘法尽量不要溢出的系数，因为如果计算出来的
 hash 地址越大，所谓的“冲突”就越少，查找起来效率也会提高。现在很多虚拟机里面都有做相关优化，使用 31 的原因可能是为了更好的分配 hash 地址，并且 31 只占用 5 bits。在 Java 中，整型数是 32 位的，也就是说最多有2^32 = 4294967296 个整数，将任意一个字符串，经过 hashCode 计算之后，得到的整数应该在这
 4294967296 数之中。那么，最多有 4294967297
 个不同的字符串作 hashCode 之后，肯定有两个结果是一样的。hashCode 可以保证相同的字符串的 hash 值肯定相同，但是 hash 值相同并不一定是 value 值就相同。
-
 
 10）字符串的switch是通过equals()和hashCode()方法来实现的。记住，switch中只能使用整型，比如byte，short，char(ackii码是整型)以及int。
 还好hashCode()方法返回的是int而不是long。通过这个很容易记住hashCode返回的是int这个事实。仔细看下可以发现，进行switch的实际是哈希值，然后通过使用equals方法比较进行安全检查，这个检查是必要的，因为哈希可能会发生碰撞。因此性能是不如使用枚举进行switch或者使用纯整数常量，但这也不是很差。因为Java编译器只增加了一个equals方法，如果你比较的是字符串字面量的话会非常快，比如”abc” ==”abc”。如果你把hashCode()方法的调用也考虑进来了，那么还会再多一次的调用开销，因为字符串一旦创建了，它就会把哈希值缓存起来。
