@@ -37,3 +37,41 @@ framework中的类会调用context.getApplicationInfo().targetSdkVersion去获�
 下面这个帖子给了很精彩的说明， “A concept can be better delivered with examples, always”. 也充分说明了阅读android framework源码对于app开发的重要性.
 http://stackoverflow.com/questions/4568267/android-min-sdk-version-vs-target-sdk-version
 
+
+******************************************************************************************************
+
+如果开发的应用用户较多，那么必须保证应用在多个版本不同的设备上能够正确的运行。这就要求对各个版本比较熟悉，知道在什么版本中加入了什么新的功能或特性。但是Android的版本太多了，是个令人头疼的问题。如果想了解Android的版本差异，建议读一下Android开发者文档上相关的章节。
+
+为了让你的应用程序指定可以运行的版本，Android的manifest文件中提供了<uses-sdk>标签。该标签中有三个属性，分别是minSdkVersion，targetSdkVersion，maxSdkVersion。这三个属性比较容易让人迷惑，我也是仔细读了谷歌的官方文档，才弄清楚这三个属性的意义。此外，在项目构建时，还有个概念叫build target，在本文中也会进行分析。
+
+什么是API level
+
+其实标签<uses-sdk>中指定的并不是我们使用的sdk的版本，也不是Android系统的版本，而是我们使用的Android平台的版本，即API level。API level是一个整数，它指的是我们使用的框架（Framework）的版本，也就是我们使用的sdk中的各个平台下的android.jar。但是这个API level又和Android系统的版本有着对应关系，并且每个系统都会在内部记录它所使用的API level。举例来说，我使用的手机系统是Android 2.3.3， 那么它就会在内部记录使用的API level为10。这个内部的API level可以让系统判定能不能安装一款app，这个问题会在下文中提及。
+android的系统版本和API level之间并不是一一对应的，比如Android 2.3， Android 2.3.1， Android 2.3.2对应API level 9， 而Android 2.3.3， Android 2.3.4对应API level 10。API level是Android向开发者提供的一套Framework（android.jar）的代号，可能发布了新的系统版本，但是这一套接口并没有变化，所以就不必提供新的Framework开发包，所以API level也不必改变。由此可知Android系统版本和API level是多对一的关系。由于API level就是发布的android.jar（一套接口）的代号，所以API level和sdk中platforms目录中的各个android.jar是一一对应的。说白了，Android系统版本是给Android用户看的，而API level是给应用程序开发者看的。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
